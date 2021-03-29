@@ -1,81 +1,68 @@
 package ru.netology;
 
-import java.io.*;
-import java.util.ArrayList;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.zip.ZipInputStream;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
+        String pathZip = "C://Games/savegames/zipOutput.zip";
         String path = "C://Games/savegames/";
-        String zipPath = "C://Games/savegames/zipOutput.zip";
+        String pathGame = "C://Games/savegames/1gamePacked.txt";
 
+        openZip(pathZip, path);
+        openProgress(pathGame);
+
+        /*
+        Zip zip = new Zip("C://Games/savegames/zipOutput.zip");
         GameProgress game1 = new GameProgress(100, 100, 1, 1);
         GameProgress game2 = new GameProgress(90, 150, 5, 17);
         GameProgress game3 = new GameProgress(50, 300, 10, 32);
 
-        saveGame(path, game1);
-        saveGame(path, game2);
-        saveGame(path, game3);
+        zip.saveGame(path, game1);
+        zip.saveGame(path, game2);
+        zip.saveGame(path, game3);
 
-        ArrayList<String> allFiles = new ArrayList<>(getFiles(path));
-        zipFiles(allFiles, zipPath);
+        ArrayList<String> allFiles = new ArrayList<>(zip.getFiles(path));
+        zip.zipFiles(allFiles, zip.getPath());
 
-        cleanDir(path);
+        zip.cleanDir(path);
+*/
     }
 
-    public static void saveGame(String path, GameProgress game) {
-        String savePath = path + "game" + game.getCount() + ".dat";
-        try (FileOutputStream fos = new FileOutputStream(savePath);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-            oos.writeObject(game);
-            System.out.printf("Игра game%s сохранена\n", game.getCount());
+    public static void openZip(String pathZip, String path) {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(pathZip))) {
+            ZipEntry entry;
+            String name;
+            while ((entry = zis.getNextEntry()) != null) {
+                name = entry.getName(); // получим название файла
+                // распаковка
+                FileOutputStream fos = new FileOutputStream(path + name);
+                for (int c = zis.read(); c != -1; c = zis.read()) {
+                    fos.write(c);
+                }
+                fos.flush();
+                zis.closeEntry();
+                fos.close();
+            }
+            System.out.println("Файлы разархивированы");
         } catch (Exception e) {
-            System.out.println("Ошибка, Игра не сохранена");
+            System.out.println("Ошибка. Файлы не разархивированы");
         }
     }
 
-    public static void zipFiles(ArrayList<String> allFiles, String zipPath) throws IOException {
-        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipPath))) {
-            for (int i = 0; i < allFiles.size(); i++) {
-                try (FileInputStream fis = new FileInputStream(allFiles.get(i))) {
-                    ZipEntry entry = new ZipEntry(i + "gamePacked.txt");
-                    zos.putNextEntry(entry);
-                    byte[] buffer = new byte[fis.available()];
-                    fis.read(buffer);
-                    zos.write(buffer);
-                    zos.closeEntry();
-                } catch (FileNotFoundException e) {
-                    System.out.println("Ошибка. Файлы не заархивированы");
-                }
-            }
-            System.out.println("Файлы заархивированы");
-        } catch (FileNotFoundException e) {
-            System.out.println("Ошибка. Файлы не заархивированы");
+    public static void openProgress(String pathGame) {
+        GameProgress game = null;
+        try (FileInputStream fis = new FileInputStream(pathGame);
+             ObjectInputStream ois = new ObjectInputStream(fis)) {
+            game = (GameProgress) ois.readObject();
+            System.out.println("Файл десерилиазован");
+        } catch (Exception e) {
+            System.out.println("Ошибка. Не удалось десерилиазовать файл");
         }
-    }
-
-    public static ArrayList<String> getFiles(String path) {
-        File dir = new File(path);
-        ArrayList<String> dirFiles = new ArrayList<>();
-        if (dir.isDirectory()) {
-            for (File item : dir.listFiles()) {
-                dirFiles.add(item.getAbsoluteFile().toString());
-            }
-        }
-        return dirFiles;
-    }
-
-    public static void cleanDir(String path) {
-        File dir = new File(path);
-        if (dir.isDirectory()) {
-            for (File file : dir.listFiles()) {
-                if (!file.toString().substring(file.toString().lastIndexOf(".")).equals(".zip")) {
-                    file.delete();
-                }
-            }
-            System.out.println("Файлы вне архива удалены");
-        }
+        System.out.println(game);
     }
 }
