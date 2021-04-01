@@ -1,5 +1,6 @@
 package ru.netology;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
@@ -9,9 +10,9 @@ import java.util.zip.ZipInputStream;
 public class Main {
 
     public static void main(String[] args) {
-        String pathZip = "C://Games/savegames/zipOutput.zip";
-        String path = "C://Games/savegames/";
-        String pathGame = "C://Games/savegames/1gamePacked.txt";
+        String pathZip = File.separator + "Games" +File.separator +"savegames" + File.separator + "zipOutput.zip";
+        String path = File.separator + "Games" +File.separator +"savegames" + File.separator;
+        String pathGame = File.separator + "Games" +File.separator +"savegames" + File.separator  + "1gamePacked.txt";
 
         openZip(pathZip, path);
         openProgress(pathGame);
